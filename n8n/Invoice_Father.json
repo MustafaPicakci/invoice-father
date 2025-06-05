@@ -1,0 +1,407 @@
+{
+  "name": "Invoice Father",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro-001",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        860,
+        320
+      ],
+      "id": "6fe13dcd-3ef1-4547-9beb-897a09716371",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "4sFgC2UhOsSWLDVj",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8bb96ae3-a934-4900-a2fc-b8b8b7de2afb",
+              "leftValue": "={{ $json.message.photo }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        280,
+        80
+      ],
+      "id": "c8dbb9c1-3a04-4819-ad10-5f07978206ee",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/extract",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        60
+      ],
+      "id": "ffa5240d-ff53-4230-a90e-0d77f491d075",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        60,
+        100
+      ],
+      "id": "3017c72e-485d-4cff-a87f-bcfee9aee7c1",
+      "name": "Telegram Trigger",
+      "webhookId": "83dfc9b3-f909-4785-8408-b0f55aaa7e3e",
+      "credentials": {
+        "telegramApi": {
+          "id": "gmVaqqJiUzZcfRSh",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a8751720-ec67-48ba-97c2-91ac7c139271",
+              "name": "prompt",
+              "value": "=Aşağıdaki metin bir fiş/fatura çıktısıdır. Bu metinden aşağıdaki alanları doğru şekilde JSON formatında çıkar:\n\n- firma: Firma adı\n- adres: Firma adresi\n- vergi_dairesi: Vergi dairesi ismi\n- vergi_no: Vergi numarası\n- tarih: Fatura tarihi (gün.ay.yıl formatında)\n- saat: Saat (saat:dakika formatında)\n- fis_no: Fiş numarası\n- urun_adi: Faturadaki ürün ismi\n- urun_fiyat: Ürün fiyatı\n- toplam_tutar: Faturadaki toplam tutar. Genellikle en son geçen fiyat budur. Yanıltıcı büyük sayılardan kaçın. 89,00 gibi gerçek para değerini al.\n\nLütfen sadece şu formatta cevap ver:\n{\n  \"firma\": \"...\",\n  \"adres\": \"...\",\n  \"vergi_dairesi\": \"...\",\n  \"vergi_no\": \"...\",\n  \"tarih\": \"...\",\n  \"saat\": \"...\",\n  \"fis_no\": \"...\",\n  \"urun_adi\": \"...\",\n  \"urun_fiyat\": \"...\",\n  \"toplam_tutar\": \"...\"\n}\n\nİşte raw string:\n{{ $json.raw_text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": "={{ $json.raw_text }} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        600,
+        320
+      ],
+      "id": "d5d4a1da-eb32-4093-bad0-988e2e276031",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        860,
+        100
+      ],
+      "id": "8770d151-4671-40d1-8d52-c89a76bbd2fa",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1MORQza2TQmuBg9MMgDtN4Ig-2FneWzubANuQ1zIVcrA/edit?usp=drive_link",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1304329918,
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MORQza2TQmuBg9MMgDtN4Ig-2FneWzubANuQ1zIVcrA/edit#gid=1304329918"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "firma": "={{ $json.firma }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "firma",
+              "displayName": "firma",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "adres",
+              "displayName": "adres",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "vergi_dairesi",
+              "displayName": "vergi_dairesi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "vergi_no",
+              "displayName": "vergi_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tarih",
+              "displayName": "tarih",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "saat",
+              "displayName": "saat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fis_no",
+              "displayName": "fis_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "urun_adi",
+              "displayName": "urun_adi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "urun_fiyat",
+              "displayName": "urun_fiyat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "toplam_tutar",
+              "displayName": "toplam_tutar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "kayit_tarihi",
+              "displayName": "kayit_tarihi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1400,
+        100
+      ],
+      "id": "793e883a-b03f-46d7-8f81-4dd45d72e8d0",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleApi": {
+          "id": "0PBzGFtKK1BtRs1O",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output\nconst currentDate=new Date();\n\nconst parsed = {kayit_tarihi:currentDate,...JSON.parse(raw)};\n\nreturn [ { json: parsed } ];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        100
+      ],
+      "id": "c5963f73-f0bc-4b23-8f65-5ba48e8cc1f3",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8e50bbbf-c4f5-474d-a440-65cf1b3a6cd2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3e53974c6d807d8002c03885abe2f9c629d99cca4db9574b4e3455fbcd8cfca4"
+  },
+  "id": "LbHxN0LkO79GGJq6",
+  "tags": []
+}

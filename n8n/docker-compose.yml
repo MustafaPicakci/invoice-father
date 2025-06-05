@@ -1,0 +1,11 @@
+services:
+  n8n:
+    image: n8nio/n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    env_file:
+      - ./.env.development 
+
+    volumes:
+      - /Users/mustafa/Desktop/n8n_data:/home/node/.n8n
