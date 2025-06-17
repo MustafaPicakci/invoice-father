@@ -2,6 +2,10 @@
 
 Bu proje, fiş veya makbuz gibi belgelerden metin verisi çıkartmak için bir OCR (Optical Character Recognition) API'si ile bu veriyi otomatik olarak işleyip Google Sheets gibi platformlara aktaran bir **n8n otomasyonu** içerir.
 
+<div style="text-align: center;">
+<img src="invoice-father.png" alt="invoice father" width="300" />
+</div>
+
 ## 🔧 Proje Bileşenleri
 
 ### 1. OCR API (FastAPI + Tesseract)

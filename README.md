@@ -2,9 +2,13 @@
 
 This project includes an **n8n automation** that uses an OCR (Optical Character Recognition) API to extract text data from receipts or similar documents and automatically transfers the structured data to platforms like Google Sheets.
 
-- 🇹🇷 [Türkçe](./README.tr.md)
+<div style="text-align: center;">
+<img src="invoice-father.png" alt="invoice father" width="300" />
+</div>
 
 ---
+
+- 🇹🇷 [Türkçe](./README.tr.md)
 
 ## 🔧 Project Components
 
